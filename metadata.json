@@ -1,0 +1,6 @@
+{
+  "name": "Neon Rink",
+  "description": "Futuristic 3v3 arcade roller-skate arena sports game with real-time 3D stadium, intelligent AI, five game modes, progression, and global leaderboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

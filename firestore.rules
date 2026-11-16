@@ -1,0 +1,189 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidShortString(val, minLen, maxLen) {
+      return val is string && val.size() >= minLen && val.size() <= maxLen;
+    }
+
+    function isValidPlayerProfile(data) {
+      return isValidShortString(data.userId, 1, 128) &&
+             isValidShortString(data.callsign, 2, 24) &&
+             data.level is int && data.level >= 1 && data.level <= 999 &&
+             data.xp is int && data.xp >= 0 && data.xp <= 100000000 &&
+             data.credits is int && data.credits >= 0 && data.credits <= 100000000 &&
+             data.totalMatches is int && data.totalMatches >= 0 && data.totalMatches <= 1000000 &&
+             data.wins is int && data.wins >= 0 && data.wins <= 1000000 &&
+             data.losses is int && data.losses >= 0 && data.losses <= 1000000 &&
+             data.goals is int && data.goals >= 0 && data.goals <= 10000000 &&
+             data.assists is int && data.assists >= 0 && data.assists <= 10000000 &&
+             data.saves is int && data.saves >= 0 && data.saves <= 10000000 &&
+             data.bestTimeChallengeGoals is int && data.bestTimeChallengeGoals >= 0 && data.bestTimeChallengeGoals <= 1000 &&
+             data.tournamentsWon is int && data.tournamentsWon >= 0 && data.tournamentsWon <= 100000 &&
+             data.unlockedItems is list && data.unlockedItems.size() >= 1 && data.unlockedItems.size() <= 64 &&
+             data.unlockedItems[0] is string &&
+             isValidShortString(data.selectedOutfit, 1, 48) &&
+             isValidShortString(data.selectedSkate, 1, 48) &&
+             isValidShortString(data.selectedTrail, 1, 48) &&
+             isValidShortString(data.selectedBall, 1, 48) &&
+             isValidShortString(data.selectedGoalFx, 1, 48) &&
+             isValidShortString(data.selectedArena, 1, 48) &&
+             isValidShortString(data.selectedCelebration, 1, 48);
+    }
+
+    function isValidMatchRecord(data) {
+      return data.mode in ['quick_match', 'tournament', 'time_challenge'] &&
+             data.difficulty in ['easy', 'normal', 'hard', 'expert'] &&
+             data.playerScore is int && data.playerScore >= 0 && data.playerScore <= 200 &&
+             data.opponentScore is int && data.opponentScore >= 0 && data.opponentScore <= 200 &&
+             data.won is bool &&
+             data.goalsScored is int && data.goalsScored >= 0 && data.goalsScored <= 200 &&
+             data.assists is int && data.assists >= 0 && data.assists <= 200 &&
+             data.saves is int && data.saves >= 0 && data.saves <= 200 &&
+             data.xpEarned is int && data.xpEarned >= 0 && data.xpEarned <= 50000 &&
+             data.creditsEarned is int && data.creditsEarned >= 0 && data.creditsEarned <= 50000 &&
+             data.overtime is bool;
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return isValidShortString(data.userId, 1, 128) &&
+             isValidShortString(data.callsign, 2, 24) &&
+             data.rating is int && data.rating >= 0 && data.rating <= 100000000 &&
+             data.level is int && data.level >= 1 && data.level <= 999 &&
+             data.wins is int && data.wins >= 0 && data.wins <= 1000000 &&
+             data.goals is int && data.goals >= 0 && data.goals <= 10000000 &&
+             data.bestTimeChallenge is int && data.bestTimeChallenge >= 0 && data.bestTimeChallenge <= 1000 &&
+             isValidShortString(data.selectedOutfit, 1, 48) &&
+             data.isPublic is bool && data.isPublic == true;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'callsign', 'level', 'xp', 'credits',
+                         'totalMatches', 'wins', 'losses', 'goals', 'assists', 'saves',
+                         'bestTimeChallengeGoals', 'tournamentsWon', 'unlockedItems',
+                         'selectedOutfit', 'selectedSkate', 'selectedTrail', 'selectedBall',
+                         'selectedGoalFx', 'selectedArena', 'selectedCelebration',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'callsign', 'level', 'xp', 'credits',
+                         'totalMatches', 'wins', 'losses', 'goals', 'assists', 'saves',
+                         'bestTimeChallengeGoals', 'tournamentsWon', 'unlockedItems',
+                         'selectedOutfit', 'selectedSkate', 'selectedTrail', 'selectedBall',
+                         'selectedGoalFx', 'selectedArena', 'selectedCelebration',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidPlayerProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidPlayerProfile(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'callsign', 'level', 'xp', 'credits',
+                         'totalMatches', 'wins', 'losses', 'goals', 'assists', 'saves',
+                         'bestTimeChallengeGoals', 'tournamentsWon', 'unlockedItems',
+                         'selectedOutfit', 'selectedSkate', 'selectedTrail', 'selectedBall',
+                         'selectedGoalFx', 'selectedArena', 'selectedCelebration',
+                         'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+
+      match /matches/{matchId} {
+        allow get: if isSignedIn() && isValidId(matchId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(matchId) &&
+                         request.auth.uid == userId &&
+                         incoming().keys().hasAll([
+                           'mode', 'difficulty', 'playerScore', 'opponentScore', 'won',
+                           'goalsScored', 'assists', 'saves', 'xpEarned', 'creditsEarned',
+                           'overtime', 'createdAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'mode', 'difficulty', 'playerScore', 'opponentScore', 'won',
+                           'goalsScored', 'assists', 'saves', 'xpEarned', 'creditsEarned',
+                           'overtime', 'createdAt'
+                         ]) &&
+                         incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                         isValidMatchRecord(incoming());
+
+        allow update: if false;
+        allow delete: if isSignedIn() && isValidId(matchId) && request.auth.uid == userId;
+      }
+    }
+
+    match /leaderboard/{entryId} {
+      allow get: if isSignedIn() && isValidId(entryId) && (request.auth.uid == entryId || (resource != null && existing().isPublic == true));
+      allow list: if isSignedIn() && existing().isPublic == true;
+
+      allow create: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       request.auth.uid == entryId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'callsign', 'rating', 'level', 'wins', 'goals',
+                         'bestTimeChallenge', 'selectedOutfit', 'isPublic', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'callsign', 'rating', 'level', 'wins', 'goals',
+                         'bestTimeChallenge', 'selectedOutfit', 'isPublic', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp && incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidLeaderboardEntry(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       request.auth.uid == entryId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp && incoming().updatedAt <= request.time &&
+                       isValidLeaderboardEntry(incoming()) &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'callsign', 'rating', 'level', 'wins', 'goals',
+                         'bestTimeChallenge', 'selectedOutfit', 'isPublic', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(entryId) && request.auth.uid == entryId;
+    }
+  }
+}

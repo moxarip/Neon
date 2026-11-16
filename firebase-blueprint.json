@@ -1,0 +1,262 @@
+{
+  "entities": {
+    "PlayerProfile": {
+      "title": "PlayerProfile",
+      "description": "Authenticated player career stats, progression, unlocked cosmetics, and loadout.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner Firebase Auth UID."
+        },
+        "callsign": {
+          "type": "string",
+          "description": "Player display callsign shown in match HUD and global leaderboard."
+        },
+        "level": {
+          "type": "integer",
+          "description": "Player progression level (>= 1)."
+        },
+        "xp": {
+          "type": "integer",
+          "description": "Cumulative experience points (>= 0)."
+        },
+        "credits": {
+          "type": "integer",
+          "description": "In-game earned credits (>= 0)."
+        },
+        "totalMatches": {
+          "type": "integer",
+          "description": "Total matches completed."
+        },
+        "wins": {
+          "type": "integer",
+          "description": "Total wins."
+        },
+        "losses": {
+          "type": "integer",
+          "description": "Total losses."
+        },
+        "goals": {
+          "type": "integer",
+          "description": "Career goals scored."
+        },
+        "assists": {
+          "type": "integer",
+          "description": "Career assists."
+        },
+        "saves": {
+          "type": "integer",
+          "description": "Career goalkeeper saves."
+        },
+        "bestTimeChallengeGoals": {
+          "type": "integer",
+          "description": "Best score in Time Challenge mode."
+        },
+        "tournamentsWon": {
+          "type": "integer",
+          "description": "Number of tournaments won."
+        },
+        "unlockedItems": {
+          "type": "array",
+          "description": "IDs of unlocked cosmetic items (max 64)."
+        },
+        "selectedOutfit": {
+          "type": "string",
+          "description": "Active outfit ID."
+        },
+        "selectedSkate": {
+          "type": "string",
+          "description": "Active skate ID."
+        },
+        "selectedTrail": {
+          "type": "string",
+          "description": "Active neon trail ID."
+        },
+        "selectedBall": {
+          "type": "string",
+          "description": "Active energy ball skin ID."
+        },
+        "selectedGoalFx": {
+          "type": "string",
+          "description": "Active goal explosion effect ID."
+        },
+        "selectedArena": {
+          "type": "string",
+          "description": "Active arena variation ID."
+        },
+        "selectedCelebration": {
+          "type": "string",
+          "description": "Active player celebration animation ID."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "callsign",
+        "level",
+        "xp",
+        "credits",
+        "totalMatches",
+        "wins",
+        "losses",
+        "goals",
+        "assists",
+        "saves",
+        "bestTimeChallengeGoals",
+        "tournamentsWon",
+        "unlockedItems",
+        "selectedOutfit",
+        "selectedSkate",
+        "selectedTrail",
+        "selectedBall",
+        "selectedGoalFx",
+        "selectedArena",
+        "selectedCelebration",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MatchRecord": {
+      "title": "MatchRecord",
+      "description": "Immutable record of a completed match under a player's profile.",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["quick_match", "tournament", "time_challenge"]
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["easy", "normal", "hard", "expert"]
+        },
+        "playerScore": {
+          "type": "integer"
+        },
+        "opponentScore": {
+          "type": "integer"
+        },
+        "won": {
+          "type": "boolean"
+        },
+        "goalsScored": {
+          "type": "integer"
+        },
+        "assists": {
+          "type": "integer"
+        },
+        "saves": {
+          "type": "integer"
+        },
+        "xpEarned": {
+          "type": "integer"
+        },
+        "creditsEarned": {
+          "type": "integer"
+        },
+        "overtime": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "mode",
+        "difficulty",
+        "playerScore",
+        "opponentScore",
+        "won",
+        "goalsScored",
+        "assists",
+        "saves",
+        "xpEarned",
+        "creditsEarned",
+        "overtime",
+        "createdAt"
+      ]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public competitive ranking entry (no PII). Document ID equals userId.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string"
+        },
+        "callsign": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "integer"
+        },
+        "level": {
+          "type": "integer"
+        },
+        "wins": {
+          "type": "integer"
+        },
+        "goals": {
+          "type": "integer"
+        },
+        "bestTimeChallenge": {
+          "type": "integer"
+        },
+        "selectedOutfit": {
+          "type": "string"
+        },
+        "isPublic": {
+          "type": "boolean"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "callsign",
+        "rating",
+        "level",
+        "wins",
+        "goals",
+        "bestTimeChallenge",
+        "selectedOutfit",
+        "isPublic",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/PlayerProfile" },
+      "description": "Per-user career stats, unlocked items, and loadout."
+    },
+    "/users/{userId}/matches/{matchId}": {
+      "schema": { "$ref": "#/entities/MatchRecord" },
+      "description": "Immutable match history for the user."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Global Neon Rink Overdrive competitive leaderboard (no PII)."
+    }
+  }
+}
