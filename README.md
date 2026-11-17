@@ -26,5 +26,5 @@ A futuristic 3v3 arcade roller-skate arena sports game built for Android with a 
 - Supports **Standard**, **Compact**, and **Lefty Swap** layouts plus adjustable Joystick Sensitivity in Settings.
 
 ## Building an APK
-- **Local Gradle**: `gradle :app:assembleDebug` (outputs to `app/build/outputs/apk/debug/app-debug.apk`).
-- **GitHub Actions**: `.github/workflows/build-debug-apk.yml` automatically builds and uploads the debug APK artifact on every push to `main`/`master`.
+- **Local Gradle**: `gradle :app:assembleDebug` (outputs to `app/build/outputs/apk/debug/app-debug.apk` and automatically copies the latest signed build to `debug/debug.apk`).
+- **GitHub Actions**: `.github/workflows/build-debug-apk.yml` automatically builds and uploads `debug/debug.apk` on every push to `main`/`master`.
